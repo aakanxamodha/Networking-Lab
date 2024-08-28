@@ -2,22 +2,25 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
-#include <string.h>
 
-#define TICKETS_PER_CATEGORY 20
+#define MAX 100
 
 struct msg_buffer {
     long msg_type;
-    char name[50];
-    char phone[15];
-    int category;
-    int tickets;
-    char response[100];
+    char text[MAX];
 } message;
 
-int available_tickets[5] = {TICKETS_PER_CATEGORY, TICKETS_PER_CATEGORY, TICKETS_PER_CATEGORY, TICKETS_PER_CATEGORY, TICKETS_PER_CATEGORY};
+void cypher(char *text) {
+    for (int i = 0; i < strlen(text); i++) {
+        if (text[i] >= 'a' && text[i] <= 'z')
+            text[i] = 'z' - (text[i] - 'a');
+        else if (text[i] >= 'A' && text[i] <= 'Z')
+            text[i] = 'Z' - (text[i] - 'A');
+    }
+}
 
 int main() {
     key_t key;
@@ -27,16 +30,7 @@ int main() {
     msgid = msgget(key, 0666 | IPC_CREAT);
 
     msgrcv(msgid, &message, sizeof(message), 1, 0);
-
-    if (message.category < 1 || message.category > 5) {
-        strcpy(message.response, "Invalid ticket category.");
-    } else if (available_tickets[message.category - 1] >= message.tickets) {
-        available_tickets[message.category - 1] -= message.tickets;
-        snprintf(message.response, sizeof(message.response), "Booking successful! %d tickets booked for %s.", message.tickets, message.name);
-    } else {
-        strcpy(message.response, "Not enough tickets available.");
-    }
-
+    cypher(message.text);
     message.msg_type = 1;
     msgsnd(msgid, &message, sizeof(message), 0);
 }
