@@ -11,6 +11,8 @@ Server calculates the bill by applying different rate for different slabs of uni
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 int main() {
     int fd;
